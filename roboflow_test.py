@@ -1,16 +1,20 @@
 from inference_sdk import InferenceHTTPClient
 from collections import Counter
+import sys
+
+api_key = "Insert your api key here"
+image_path = sys.argv[1]
 
 client = InferenceHTTPClient(
     api_url="https://detect.roboflow.com",
-    api_key="lSKkd4HovStNs61pYXBH"
+    api_key=api_key
 )
 
 result = client.run_workflow(
     workspace_name="blueberry-stage-detection",
     workflow_id="blueberry-stage-detection-workflow",
     images={
-        "image": "testing/sharpened_smaller.jpg"
+        "image": image_path
     }
 )
 

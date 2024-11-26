@@ -1,6 +1,7 @@
 //Installations:
 sudo apt install parallel
 // Anaconda based installation
+// Need to have miniforge installed in order to run these commands.
 mamba install imagemagick mogrify -y
 
 //parallelized on cpus
@@ -36,5 +37,13 @@ find upscaled_sharpened_blueberry_flower_photos -type f -name '*.JPG' | parallel
 mogrify -rotate 90 P1200890.JPG.webp
 
 
+//for running the python script for aggregating and getting most common
+pip install inference-sdk pillow -y
 
+//Proof of concept workflow
+//The image may need to be made smaller in order to run on the workflow
+// to run, run
+python make_smaller_image.py
+// Once image is sufficiently small, modify image path in roboflow_test.py and enter
+python roboflow_test.py
  

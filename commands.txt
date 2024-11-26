@@ -1,0 +1,40 @@
+//Installations:
+sudo apt install parallel
+// Anaconda based installation
+mamba install imagemagick mogrify -y
+
+//parallelized on cpus
+//Sharpening (for improving image quality for labelling) (imagemagick wsl):
+find blueberry_flower_photos -type f \( -iname '*.jpg' \) | parallel -j $(nproc) '
+  output_dir="blueberry_flower_photos_upscaled/$(dirname {})" &&
+  mkdir -p "$output_dir" &&
+  magick {} -sharpen 0x2 "$output_dir/{/}" &&
+  echo "Processed: {} -> $output_dir/{/}"
+
+
+//uses built in gpu for acceleration
+//Realesrgan AI image upscaling (windows, binary executable):
+Get-ChildItem -Recurse -File "C:\Users\13144\Documents\sharpened_blueberry_flower_photos" | ForEach-Object {     $relativePath = $_.DirectoryName.Replace("C:\Users\13144\Documents\sharpened_blueberry_flower_photos", "")
+>>     $outputDir = "C:\Users\13144\Documents\upscaled_sharpened_blueberry_flower_photos$relativePath"
+>>     New-Item -ItemType Directory -Force -Path $outputDir
+>>     .\realesrgan-ncnn-vulkan -i $_.FullName -o "$outputDir\$($_.Name)" -s 2
+>> }
+
+'
+
+//Compress and rotate in parallel on cpus
+find upscaled_sharpened_blueberry_flower_photos -type f -name '*.JPG' | parallel --jobs 4 '
+  out_dir="compressed_upscaled_sharpened_blueberry_flower_photos/{= s:upscaled_sharpened_blueberry_flower_photos/:: =}";
+  output_file="${out_dir%.JPG}.webp";
+  if [ ! -e "$output_file" ]; then
+    mkdir -p "$(dirname "$out_dir")";
+    magick {} -rotate "(%[fx:w>h?90:0])" -quality 90 "$output_file" && echo "Generated: $output_file";
+  fi
+'
+
+//rotating individual images:
+mogrify -rotate 90 P1200890.JPG.webp
+
+
+
+ 

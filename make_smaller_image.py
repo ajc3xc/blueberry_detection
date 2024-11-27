@@ -1,9 +1,9 @@
-from PIL import Image
+from PIL import Image, ImageOps
 from pathlib import Path
 
 # Input and output directories
 input_directory = "/mnt/c/Users/13144/Documents/sharpened_blueberry_flower_photos/blueberry_flower_photos/dataset1"  # Input directory containing original images
-output_directory = "testing"  # Directory to save resized images
+output_directory = "testing_all_120"  # Directory to save resized images
 
 # Create the output directory if it doesn't exist
 output_dir = Path(output_directory)
@@ -16,6 +16,9 @@ for image_file in input_dir.rglob("*.*"):  # Adjust pattern for specific image t
         try:
             # Open the image
             img = Image.open(image_file)
+            
+            # Correct orientation using EXIF metadata
+            img = ImageOps.exif_transpose(img)
             
             # Get original dimensions
             width, height = img.size

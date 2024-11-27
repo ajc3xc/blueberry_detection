@@ -1,35 +1,62 @@
 from inference_sdk import InferenceHTTPClient
 from collections import Counter
-import sys
+import pandas as pd
+from pathlib import Path
 
-api_key = "Insert your api key here"
-image_path = sys.argv[1]
+# Your Roboflow API key
+api_key = "api key"
 
+# Initialize the inference client
 client = InferenceHTTPClient(
     api_url="https://detect.roboflow.com",
     api_key=api_key
 )
 
-result = client.run_workflow(
-    workspace_name="blueberry-stage-detection",
-    workflow_id="blueberry-stage-detection-workflow",
-    images={
-        "image": image_path
-    }
-)
+# Define the recursive processing function
+def process_images_in_folder(folder_path):
+    results = []  # To store results for the DataFrame
+    folder = Path(folder_path)  # Convert to pathlib Path object
+    print(folder.is_dir())
+    
+    # Iterate recursively through all image files
+    for image_file in folder.rglob('*.*'):  # Adjust glob pattern as needed for image types
+        if image_file.is_file():  # Ensure it's a file
+            try:
+                # Run the workflow
+                result = client.run_workflow(
+                    workspace_name="blueberry-stage-detection",
+                    workflow_id="blueberry-stage-detection-workflow",
+                    images={"image": str(image_file)}
+                )
+                
+                # Extract results
+                most_common_plant_type = result[0]['plant_types']
+                total_flowers_detected = sum(result[0]['flowers_detected'])
+                
+                # Flatten the list of plant types and count occurrences
+                flattened = [stage for sublist in most_common_plant_type for stage in sublist]
+                counts = Counter(flattened)
+                most_common_stage = counts.most_common(1)[0][0]  # Find the most common stage
+                
+                # Append to results
+                results.append({
+                    "File Path": str(image_file.stem),
+                    "Most Common Stage": most_common_stage,
+                    "Total Flowers Detected": total_flowers_detected
+                })
+                
+                print(f"Processed: {image_file}")
+            
+            except Exception as e:
+                print(f"Error processing {image_file}: {e}")
+    
+    return results
 
-most_common_plant_type = result[0]['plant_types']
-total_flowers_detected = sum(result[0]['flowers_detected'])
+folder_path = "testing"
+results = process_images_in_folder(folder_path)
 
-# Step 1: Flatten the list
-flattened = [stage for sublist in most_common_plant_type for stage in sublist]
-
-
-# Step 2: Count occurrences of each stage
-counts = Counter(flattened)
-
-# Step 3: Find the most common stage
-most_common_stage = counts.most_common(1)[0][0]
-
-print("Most common stage:", most_common_stage)
-print("Total flowers detected:", total_flowers_detected)
+# Create and save the DataFrame
+df = pd.DataFrame(results)
+output_path = "processed_results.csv"  # Output file name
+df.to_csv(output_path, index=False)
+print(f"Results saved to {output_path}")

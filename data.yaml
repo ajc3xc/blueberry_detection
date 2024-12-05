@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 5
+names: ['Stage1', 'Stage2', 'Stage3', 'Stage4', 'Stage5']
+
+roboflow:
+  workspace: blueberry-stage-detection
+  project: blueberry-stage-detection-simplified-5ezez
+  version: 2
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/blueberry-stage-detection/blueberry-stage-detection-simplified-5ezez/dataset/2

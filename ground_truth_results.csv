@@ -1,0 +1,8 @@
+File Path,Ground_Stage1,Pred_Stage1,Ground_Stage2,Pred_Stage2,Ground_Stage3,Pred_Stage3,Ground_Stage4,Pred_Stage4,Ground_Stage5,Pred_Stage5,Ground_Combined,Pred_Total_Flowers,Ground_Most_Common_Stage,Pred_Most_Common_Stage
+testing_all_120/P1080267_smaller.JPG,15,14,41,87,38,48,2,7,0,0,96,156,Stage2,Stage2
+testing_all_120/P1080935_smaller.JPG,194,221,9,75,3,7,0,0,0,0,206,303,Stage1,Stage1
+testing_all_120/P1110425_smaller.JPG,2,1,16,25,295,76,259,82,295,61,867,245,Stage3,Stage4
+testing_all_120/P1130204_smaller.JPG,78,72,3,13,2,4,0,1,0,0,83,90,Stage1,Stage1
+testing_all_120/P1160603_smaller.JPG,11,2,30,35,130,65,178,115,2,57,351,274,Stage4,Stage4
+testing_all_120/P1180419_smaller.JPG,2,2,11,28,319,46,217,72,259,90,808,238,Stage3,Stage5
+testing_all_120/P1200831_smaller.JPG,68,69,93,14,1,0,0,0,0,0,162,83,Stage2,Stage1

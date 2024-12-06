@@ -4,6 +4,9 @@ import pandas as pd
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from key import key
+from PIL import Image
+import io
+import base64
 import sys
 
 # Initialize the inference client
@@ -24,7 +27,16 @@ def process_image(image_file):
     # Extract results
     most_common_plant_types = result[0]['plant_types']  # Labels per detected flower
     
-    #print(most_common_plant_types)
+    # Convert NumPy array to a Pillow Image object
+    # Decode the Base64 string to an image
+    inference_image_base64 = result[0]['inferences_image'][0]
+    image_data = base64.b64decode(inference_image_base64)
+    image = Image.open(io.BytesIO(image_data))
+
+    # Save the image as a JPG file
+    output_path = Path("inference_images")
+    output_path.mkdir(exist_ok=True)  # Create directory if it doesn't exist
+    image.save(output_path / f"{image_file.stem}_inference.jpg")
     
     # Flatten the list of plant types and count occurrences for each stage
     flattened = [stage for sublist in most_common_plant_types for stage in sublist]
@@ -65,7 +77,7 @@ if __name__ == "__main__":
                     stage = int(parts[0])
                     if 0 <= stage <= 4:
                         ground_truth_data.append({
-                            "File Path": str(folder_path / f"{p_number}_smaller.JPG"),
+                            "File Path": folder_path / f"{p_number}_smaller.JPG",
                             "Ground Truth Stage": stage + 1  # Stage numbers are 1-indexed
                         })
     ground_truth_df = pd.DataFrame(ground_truth_data)

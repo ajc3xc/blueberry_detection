@@ -5,6 +5,7 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from key import key
 from PIL import Image
+import numpy as np
 import io
 import base64
 import sys
@@ -112,6 +113,49 @@ if __name__ == "__main__":
     )
     
     combined_df = combined_df[['File Path', "Ground_Stage1", "Pred_Stage1", "Ground_Stage2", "Pred_Stage2", "Ground_Stage3", "Pred_Stage3", "Ground_Stage4", "Pred_Stage4", "Ground_Stage5", "Pred_Stage5", "Ground_Combined", "Pred_Total_Flowers", "Ground_Most_Common_Stage", "Pred_Most_Common_Stage"]]
+
+    metrics = []
+    for stage in range(1, 6):  # Assuming stages are 1 to 5
+        ground_truth_col = f"Ground_Stage{stage}"
+        prediction_col = f"Pred_Stage{stage}"
+        
+        # Element-wise minimum to calculate true positives
+        true_positives = np.minimum(combined_df[ground_truth_col], combined_df[prediction_col]).sum()
+        false_positives = (combined_df[prediction_col] - np.minimum(combined_df[ground_truth_col], combined_df[prediction_col])).sum()
+        false_negatives = (combined_df[ground_truth_col] - np.minimum(combined_df[ground_truth_col], combined_df[prediction_col])).sum()
+        
+        precision = true_positives / (true_positives + false_positives) if true_positives + false_positives > 0 else 0
+        recall = true_positives / (true_positives + false_negatives) if true_positives + false_negatives > 0 else 0
+        f1_score = (2 * precision * recall) / (precision + recall) if precision + recall > 0 else 0
+        
+        metrics.append({
+            "Stage": stage,
+            "Precision": precision,
+            "Recall": recall,
+            "F1 Score": f1_score
+        })
+
+        
+    metrics_df = pd.DataFrame(metrics)
+
+    # Add overall metrics
+    overall_precision = metrics_df["Precision"].mean()
+    overall_recall = metrics_df["Recall"].mean()
+    overall_f1_score = metrics_df["F1 Score"].mean()
+
+    overall_metrics = pd.DataFrame([{
+        "Stage": "Overall",
+        "Precision": overall_precision,
+        "Recall": overall_recall,
+        "F1 Score": overall_f1_score
+    }])
+
+    metrics_df = pd.concat([metrics_df, overall_metrics], ignore_index=True)
+
+    # Save metrics to CSV
+    metrics_df.to_csv("detection_metrics.csv", index=False)
+    print("Detection metrics saved to detection_metrics.csv")
+    
     
     # Calculate the mean for numeric columns
     mean_values = combined_df.select_dtypes(include=['number']).mean().to_frame(name='Mean').T.astype(int)
@@ -121,3 +165,4 @@ if __name__ == "__main__":
     # Save combined results to CSV
     combined_df.to_csv(output_csv, index=False)
     print(f"Ground truth results saved to {output_csv}")
+

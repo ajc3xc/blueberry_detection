@@ -112,7 +112,12 @@ if __name__ == "__main__":
     )
     
     combined_df = combined_df[['File Path', "Ground_Stage1", "Pred_Stage1", "Ground_Stage2", "Pred_Stage2", "Ground_Stage3", "Pred_Stage3", "Ground_Stage4", "Pred_Stage4", "Ground_Stage5", "Pred_Stage5", "Ground_Combined", "Pred_Total_Flowers", "Ground_Most_Common_Stage", "Pred_Most_Common_Stage"]]
+    
+    # Calculate the mean for numeric columns
+    mean_values = combined_df.select_dtypes(include=['number']).mean().to_frame(name='Mean').T.astype(int)
+    mean_values["File Path"] = "Mean"
+    combined_df = pd.concat([combined_df, mean_values], ignore_index=False)
 
     # Save combined results to CSV
     combined_df.to_csv(output_csv, index=False)
-    print(f"Combined results saved to {output_csv}")
+    print(f"Ground truth results saved to {output_csv}")

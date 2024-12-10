@@ -1,15 +1,3 @@
-from inference_sdk import InferenceHTTPClient
-from collections import Counter
-import pandas as pd
-from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from key import key
-from PIL import Image
-import numpy as np
-import io
-import base64
-import sys
-
 # Initialize the inference client
 client = InferenceHTTPClient(
     api_url="https://detect.roboflow.com",
@@ -28,7 +16,6 @@ def process_image(image_file):
     # Extract results
     most_common_plant_types = result[0]['plant_types']  # Labels per detected flower
     
-    # Convert NumPy array to a Pillow Image object
     # Decode the Base64 string to an image
     inference_image_base64 = result[0]['inferences_image'][0]
     image_data = base64.b64decode(inference_image_base64)
@@ -43,34 +30,29 @@ def process_image(image_file):
     flattened = [stage for sublist in most_common_plant_types for stage in sublist]
     counts = Counter(flattened)
     
-    most_common_stage = counts.most_common(1)[0][0]  # Find the most common stage
-    
     # Get counts for each stage explicitly
     stage_counts = {f"Pred_Stage{i}": counts.get(f"Stage{i}", 0) for i in range(1, 6)}
     
     # Total flowers detected
     total_flowers_detected = sum(stage_counts.values())
     
-    #print(f"Processed: {image_file}")
     return {
         "File Path": image_file,
         **stage_counts,  # Add stage counts to the result
-        "Pred_Most_Common_Stage": most_common_stage,
         "Pred_Total_Flowers": total_flowers_detected
     }
 
 # Main execution
 if __name__ == "__main__":
     # Directories and files
-    input_directory = Path("test_labels")  # Replace with your directory path
-    folder_path = Path("testing_all_120")  # Directory with test images
-    output_csv = "ground_truth_results.csv"  # Output CSV file
+    input_directory = Path("test_labels")
+    folder_path = Path("testing_all_120")
+    output_csv = "ground_truth_results_with_confusion.csv"
 
     # Collect ground truth data
     ground_truth_data = []
     for file in input_directory.glob("P*.txt"):
-        p_number = file.stem.split("_")[0]  # Extract P{number}
-        # Read the file and parse the stage numbers
+        p_number = file.stem.split("_")[0]
         with file.open("r") as f:
             for line in f:
                 parts = line.strip().split()
@@ -79,19 +61,15 @@ if __name__ == "__main__":
                     if 0 <= stage <= 4:
                         ground_truth_data.append({
                             "File Path": folder_path / f"{p_number}_smaller.JPG",
-                            "Ground Truth Stage": stage + 1  # Stage numbers are 1-indexed
+                            "Ground Truth Stage": stage + 1
                         })
     ground_truth_df = pd.DataFrame(ground_truth_data)
-    
+
     # Count occurrences of each stage for each P_Number
     stage_counts_df = ground_truth_df.groupby(["File Path", "Ground Truth Stage"]).size().unstack(fill_value=0)
-
-    # Rename the columns for clarity
     stage_counts_df.columns = [f"Ground_Stage{i}" for i in stage_counts_df.columns]
     stage_counts_df["Ground_Combined"] = stage_counts_df.sum(axis=1)
     relevant_columns = [col for col in stage_counts_df.columns if col != "Ground_Combined"]
-    # Calculate the most common stage for each row
-    stage_counts_df["Ground_Most_Common_Stage"] = stage_counts_df[relevant_columns].idxmax(axis=1).str.replace("Ground_", "")
     stage_counts_df.reset_index(inplace=True)
     image_files = stage_counts_df["File Path"].tolist()
 
@@ -111,15 +89,11 @@ if __name__ == "__main__":
         on="File Path",
         how="left"
     )
-    
-    combined_df = combined_df[['File Path', "Ground_Stage1", "Pred_Stage1", "Ground_Stage2", "Pred_Stage2", "Ground_Stage3", "Pred_Stage3", "Ground_Stage4", "Pred_Stage4", "Ground_Stage5", "Pred_Stage5", "Ground_Combined", "Pred_Total_Flowers", "Ground_Most_Common_Stage", "Pred_Most_Common_Stage"]]
 
     # Calculate confusion matrix for each image
     confusion_data = []
-    metrics_data = []
     for _, row in combined_df.iterrows():
         confusion_matrix = {}
-        precision_recall = {}
         for stage in range(1, 6):
             ground_truth_count = row.get(f"Ground_Stage{stage}", 0)
             prediction_count = row.get(f"Pred_Stage{stage}", 0)
@@ -131,46 +105,13 @@ if __name__ == "__main__":
             confusion_matrix[f"Stage{stage}_FP"] = false_positive
             confusion_matrix[f"Stage{stage}_FN"] = false_negative
 
-            precision = true_positive / (true_positive + false_positive) if true_positive + false_positive > 0 else 0
-            recall = true_positive / (true_positive + false_negative) if true_positive + false_negative > 0 else 0
-
-            precision_recall[f"Stage{stage}_Precision"] = precision
-            precision_recall[f"Stage{stage}_Recall"] = recall
-
         confusion_data.append({"File Path": row["File Path"], **confusion_matrix})
-        metrics_data.append({"File Path": row["File Path"], **precision_recall})
 
     confusion_df = pd.DataFrame(confusion_data)
-    confusion_df.to_csv("detection_confusion_matrix.csv", index=False)
-    metrics_df = pd.DataFrame(metrics_data) * 100
 
-    # Add overall metrics
-    overall_precision = metrics_df["Precision"].mean()
-    overall_recall = metrics_df["Recall"].mean()
-    overall_f1_score = metrics_df["F1 Score"].mean()
+    # Merge confusion data back into the combined DataFrame
+    combined_df = pd.merge(combined_df, confusion_df, on="File Path", how="left")
 
-    overall_metrics = pd.DataFrame([{
-        "Stage": "Overall",
-        "Precision": overall_precision,
-        "Recall": overall_recall,
-        "F1 Score": overall_f1_score
-    }])
-
-    metrics_df = pd.concat([metrics_df, overall_metrics], ignore_index=True)
-
-    metrics_df = metrics_df.round(2)
-
-    # Save metrics to CSV
-    metrics_df.to_csv("detection_metrics_percent.csv", index=False)
-    print("Detection metrics saved to detection_metrics.csv")
-    
-    
-    # Calculate the mean for numeric columns
-    mean_values = combined_df.select_dtypes(include=['number']).mean().to_frame(name='Mean').T.astype(int)
-    mean_values["File Path"] = "Mean"
-    combined_df = pd.concat([combined_df, mean_values], ignore_index=False)
-
-    # Save combined results to CSV
+    # Save the combined DataFrame with confusion matrices to a CSV
     combined_df.to_csv(output_csv, index=False)
-    print(f"Ground truth results saved to {output_csv}")
-
+    print(f"Ground truth results with confusion matrices saved to {output_csv}")

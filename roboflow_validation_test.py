@@ -113,13 +113,16 @@ if __name__ == "__main__":
     )
     
     combined_df = combined_df[['File Path', "Ground_Stage1", "Pred_Stage1", "Ground_Stage2", "Pred_Stage2", "Ground_Stage3", "Pred_Stage3", "Ground_Stage4", "Pred_Stage4", "Ground_Stage5", "Pred_Stage5", "Ground_Combined", "Pred_Total_Flowers", "Ground_Most_Common_Stage", "Pred_Most_Common_Stage"]]
-
-    # Calculate confusion matrix for each image
+    
+    # Calculate confusion matrix and metrics
     confusion_data = []
     metrics_data = []
+    overall_true_positives = 0
+    overall_false_positives = 0
+    overall_false_negatives = 0
+
     for _, row in combined_df.iterrows():
         confusion_matrix = {}
-        precision_recall = {}
         for stage in range(1, 6):
             ground_truth_count = row.get(f"Ground_Stage{stage}", 0)
             prediction_count = row.get(f"Pred_Stage{stage}", 0)
@@ -131,34 +134,48 @@ if __name__ == "__main__":
             confusion_matrix[f"Stage{stage}_FP"] = false_positive
             confusion_matrix[f"Stage{stage}_FN"] = false_negative
 
-            precision = true_positive / (true_positive + false_positive) if true_positive + false_positive > 0 else 0
-            recall = true_positive / (true_positive + false_negative) if true_positive + false_negative > 0 else 0
-
-            precision_recall[f"Stage{stage}_Precision"] = precision
-            precision_recall[f"Stage{stage}_Recall"] = recall
+            overall_true_positives += true_positive
+            overall_false_positives += false_positive
+            overall_false_negatives += false_negative
 
         confusion_data.append({"File Path": row["File Path"], **confusion_matrix})
-        metrics_data.append({"File Path": row["File Path"], **precision_recall})
+
+    for stage in range(1, 6):
+        stage_true_positive = sum(row[f"Stage{stage}_TP"] for row in confusion_data)
+        stage_false_positive = sum(row[f"Stage{stage}_FP"] for row in confusion_data)
+        stage_false_negative = sum(row[f"Stage{stage}_FN"] for row in confusion_data)
+
+        precision = stage_true_positive / (stage_true_positive + stage_false_positive) if stage_true_positive + stage_false_positive > 0 else 0
+        recall = stage_true_positive / (stage_true_positive + stage_false_negative) if stage_true_positive + stage_false_negative > 0 else 0
+        f1_score = (2 * precision * recall) / (precision + recall) if precision + recall > 0 else 0
+
+        metrics_data.append({
+            "Stage": stage,
+            "Precision": round(precision * 100, 2),
+            "Recall": round(recall * 100, 2),
+            "F1 Score": round(f1_score * 100, 2)
+        })
+
+    # Calculate overall metrics
+    overall_precision = overall_true_positives / (overall_true_positives + overall_false_positives) if overall_true_positives + overall_false_positives > 0 else 0
+    overall_recall = overall_true_positives / (overall_true_positives + overall_false_negatives) if overall_true_positives + overall_false_negatives > 0 else 0
+    overall_f1_score = (2 * overall_precision * overall_recall) / (overall_precision + overall_recall) if overall_precision + overall_recall > 0 else 0
+
+    metrics_data.append({
+        "Stage": "Overall",
+        "Precision": round(overall_precision * 100, 2),
+        "Recall": round(overall_recall * 100, 2),
+        "F1 Score": round(overall_f1_score * 100, 2)
+    })
 
     confusion_df = pd.DataFrame(confusion_data)
-    confusion_df.to_csv("detection_confusion_matrix.csv", index=False)
-    metrics_df = pd.DataFrame(metrics_data) * 100
+    metrics_df = pd.DataFrame(metrics_data)
 
-    # Add overall metrics
-    overall_precision = metrics_df["Precision"].mean()
-    overall_recall = metrics_df["Recall"].mean()
-    overall_f1_score = metrics_df["F1 Score"].mean()
+    #metrics_df = pd.concat([metrics_df, overall_metrics], ignore_index=True)
 
-    overall_metrics = pd.DataFrame([{
-        "Stage": "Overall",
-        "Precision": overall_precision,
-        "Recall": overall_recall,
-        "F1 Score": overall_f1_score
-    }])
-
-    metrics_df = pd.concat([metrics_df, overall_metrics], ignore_index=True)
-
-    metrics_df = metrics_df.round(2)
+    #metrics_df = metrics_df.round(2)
+    
+    #print("test")
 
     # Save metrics to CSV
     metrics_df.to_csv("detection_metrics_percent.csv", index=False)

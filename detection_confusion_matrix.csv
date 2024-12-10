@@ -1,0 +1,8 @@
+File Path,Stage1_TP,Stage1_FP,Stage1_FN,Stage2_TP,Stage2_FP,Stage2_FN,Stage3_TP,Stage3_FP,Stage3_FN,Stage4_TP,Stage4_FP,Stage4_FN,Stage5_TP,Stage5_FP,Stage5_FN
+testing_all_120/P1080267_smaller.JPG,14,0,1,41,46,0,38,10,0,2,5,0,0,0,0
+testing_all_120/P1080935_smaller.JPG,194,27,0,9,66,0,3,4,0,0,0,0,0,0,0
+testing_all_120/P1110425_smaller.JPG,1,0,1,16,9,0,76,0,219,82,0,177,61,0,234
+testing_all_120/P1130204_smaller.JPG,72,0,6,3,10,0,2,2,0,0,1,0,0,0,0
+testing_all_120/P1160603_smaller.JPG,2,0,9,30,5,0,65,0,65,115,0,63,2,55,0
+testing_all_120/P1180419_smaller.JPG,2,0,0,11,17,0,46,0,273,72,0,145,90,0,169
+testing_all_120/P1200831_smaller.JPG,68,1,0,14,0,79,0,0,1,0,0,0,0,0,0

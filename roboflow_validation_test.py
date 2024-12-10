@@ -62,7 +62,7 @@ def process_image(image_file):
 # Main execution
 if __name__ == "__main__":
     # Directories and files
-    input_directory = Path("test_labels")  # Replace with your directory path
+    input_directory = Path("test_valid_labels")  # Replace with your directory path
     folder_path = Path("testing_all_120")  # Directory with test images
     output_csv = "ground_truth_results.csv"  # Output CSV file
 
@@ -76,10 +76,10 @@ if __name__ == "__main__":
                 parts = line.strip().split()
                 if len(parts) > 0 and parts[0].isdigit():
                     stage = int(parts[0])
-                    if 0 <= stage <= 4:
+                    if 1 <= stage <= 5:
                         ground_truth_data.append({
                             "File Path": folder_path / f"{p_number}_smaller.JPG",
-                            "Ground Truth Stage": stage + 1  # Stage numbers are 1-indexed
+                            "Ground Truth Stage": stage
                         })
     ground_truth_df = pd.DataFrame(ground_truth_data)
     

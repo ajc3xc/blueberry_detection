@@ -1,9 +1,9 @@
 File Path,Ground_Stage1,Pred_Stage1,Ground_Stage2,Pred_Stage2,Ground_Stage3,Pred_Stage3,Ground_Stage4,Pred_Stage4,Ground_Stage5,Pred_Stage5,Ground_Combined,Pred_Total_Flowers,Ground_Most_Common_Stage,Pred_Most_Common_Stage
 testing_all_120/P1080267_smaller.JPG,40,14,107,87,201,48,23,7,7,0,378,156,Stage3,Stage2
 testing_all_120/P1110425_smaller.JPG,2,1,18,25,359,76,321,82,331,61,1031,245,Stage3,Stage4
-testing_all_120/P1120695_smaller.JPG,64,20,144,56,427,98,120,31,22,0,777,205,Stage3,Stage3
+testing_all_120/P1120695_smaller.JPG,64,20,136,56,407,98,119,31,20,0,746,205,Stage3,Stage3
 testing_all_120/P1130204_smaller.JPG,265,72,47,13,30,4,0,1,0,0,342,90,Stage1,Stage1
 testing_all_120/P1160603_smaller.JPG,11,2,34,35,180,65,251,115,54,57,530,274,Stage4,Stage4
 testing_all_120/P1180419_smaller.JPG,2,2,52,28,454,46,329,72,465,90,1302,238,Stage5,Stage5
 testing_all_120/P1200831_smaller.JPG,107,69,196,14,12,0,0,0,0,0,315,83,Stage2,Stage1
-Mean,70,25,85,36,237,48,149,44,125,29,667,184,,
+Mean,70,25,84,36,234,48,149,44,125,29,663,184,,

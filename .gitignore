@@ -1,3 +1,4 @@
+*.jpg
 input_data/
 draw_ground_boxes.py
 key.py

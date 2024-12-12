@@ -62,7 +62,7 @@ def process_image(image_file):
 # Main execution
 if __name__ == "__main__":
     # Directories and files
-    input_directory = Path("test_valid_labels")  # Replace with your directory path
+    input_directory = Path("test/labels")  # Replace with your directory path
     folder_path = Path("testing_all_120")  # Directory with test images
     output_csv = "ground_truth_results.csv"  # Output CSV file
 

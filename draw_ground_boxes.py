@@ -3,8 +3,8 @@ from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor
 
 # Directories for images and bounding box text files
-image_dir = Path("test_valid_images")
-bbox_dir = Path("test_valid_labels")
+image_dir = Path("test/images")
+bbox_dir = Path("test/labels")
 output_dir = Path("ground_truth_inferences")
 output_dir.mkdir(exist_ok=True)
 

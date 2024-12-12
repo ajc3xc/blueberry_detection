@@ -10,6 +10,7 @@ output_dir.mkdir(exist_ok=True)
 
 # Custom colors for each stage
 stage_colors = {
+    0: "#0000FF",  # Red for Stage 0
     1: "#C7FC00",  # Red for Stage 1
     2: "#00FFCE",  # Green for Stage 2
     3: "#8622FF",  # Blue for Stage 3
@@ -51,6 +52,8 @@ def process_image(image_path):
                     stage, x_center, y_center, width, height = map(float, parts)
                     stage = int(stage)
                     color = stage_colors.get(stage, "#FFFFFF")  # Default to white if stage is invalid
+                    if color == "#FFFFFF":
+                        print(f"Invalid stage {stage} in {bbox_file.name}")
                     x_min, y_min, x_max, y_max = yolo_to_pixel_coords([x_center, y_center, width, height], image_width, image_height)
                     draw.rectangle([x_min, y_min, x_max, y_max], outline=color, width=2)
 
